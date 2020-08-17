@@ -16,3 +16,7 @@
 $router->get('/', function () use ($router) {
     return $router->app->version();
 });
+
+Route::get('city', 'rajaongkirController@getCity');
+Route::get('province', 'rajaongkirController@getProvince');
+Route::post('getCost', 'rajaongkirController@getCost');

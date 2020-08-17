@@ -19,7 +19,7 @@ class CreateCitiesTable extends Migration
             $table->unsignedInteger('city_id');
             $table->string('type');
             $table->string('city_name');
-            $table->unsignedInteger('post_code');
+            $table->string('post_code');
             $table->timestamps();
         });
     }

@@ -1,8 +1,8 @@
 <?php
 
 use Illuminate\Database\Seeder;
-use App\province;
-use App\cities;
+use App\rajaongkir\province;
+use App\rajaongkir\city;
 use Kavist\RajaOngkir\Facades\RajaOngkir;
 
 
@@ -22,16 +22,16 @@ class locationTableSeeder extends Seeder
         foreach($province as $provinceRow){
             province::create([
                 'province_id' => $provinceRow['province_id'],
-                'title' => $provinceRow['province']
+                'province_name' => $provinceRow['province']
             ]);
-            $city = RajaOngkir::kota()>dariProvinsi($provinceRow['province_id'])->get();
+            $city = RajaOngkir::kota()->dariProvinsi($provinceRow['province_id'])->get();
             foreach($city  as $cityRaw) {
-                cities::create([
+                city::create([
                     'province_id' => $provinceRow['province_id'],
                     'city_id' => $cityRaw['city_id'],
                     'type' => $cityRaw['type'],
                     'city_name' => $cityRaw['city_name'],
-                    'post_code' => $cityRaw['post_code']
+                    'post_code' => $cityRaw['postal_code']
                 ]);
             }
         }
