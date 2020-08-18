@@ -24,12 +24,12 @@ class rajaOngkirController extends Controller
         $name = $request->input('name');
         $postcode = $request->input('postcode');
         $provinceId = $request->input('provinceId'); 
-        $type = $request->input('type'); 
+        $type = $request->input('type');
 
         if($id) {
                 $city = city::where('city_id', $id)->get();
 
-                if($city)
+                if(sizeof($city) > 0)
                 return ResponseFormatter::success($city, 'Data Kota Berdasarkan ID Berhasil Di Ambil');
                 else
                 return ResponseFormatter::error(null, 'Data Gagal di ambil cek kembali ID', 404);
@@ -37,7 +37,7 @@ class rajaOngkirController extends Controller
         }elseif ($name) {
                 $city = city::where('city_name',like,'%'.$name.'%')->get();
 
-                if($city)
+                if(sizeof($city) > 0)
                 return ResponseFormatter::success($city, 'Data Kota Berdasarkan Nama Kota Berhasil Di Ambil');
                 else
                 return ResponseFormatter::error(null, 'Data Gagal di ambil cek kembali Nama Kota', 404);
@@ -45,7 +45,7 @@ class rajaOngkirController extends Controller
         }elseif($postcode) {
                 $city = city::where('post_code', $postcode)->get();
 
-                if($city)
+                if(sizeof($city) > 0)
                 return ResponseFormatter::success($city, 'Data Kota Berdasarkan Post Code Berhasil Di Ambil');
                 else
                 return ResponseFormatter::error(null, 'Data Gagal di ambil cek kembali Post Code', 404);
@@ -53,7 +53,7 @@ class rajaOngkirController extends Controller
         }elseif($provinceId) {
                 $city = city::where('province_id', $provinceId)->get();
 
-                if($city)
+                if(sizeof($city) > 0)
                 return ResponseFormatter::success($city, 'Data Kota Berdasarkan Province ID Berhasil Di Ambil');
                 else
                 return ResponseFormatter::error(null, 'Data Gagal di ambil cek kembali Province ID', 404);
@@ -61,7 +61,7 @@ class rajaOngkirController extends Controller
         }elseif($type) {
                 $city = city::where('type', $type)->get();
 
-                if($city)
+                if(sizeof($city) > 0)
                 return ResponseFormatter::success($city, 'Data Kota Berdasarkan Type Berhasil Di Ambil');
                 else
                 return ResponseFormatter::error(null, 'Data Gagal di ambil cek kembali Type', 404);
@@ -112,7 +112,7 @@ class rajaOngkirController extends Controller
 
     }
 
-    private function getCost(Request $request) {
+    public function getCost(Request $request) {
 
         $this->validate($request, [
             'origin' => 'required|integer',
@@ -132,8 +132,6 @@ class rajaOngkirController extends Controller
 
         $courier = $request->input('courier');
         $cost = [];
-        $origin_details= '';
-        $destination_details= '';
 
         foreach($courier as $cr){
             $daftarProvinsi = RajaOngkir::ongkosKirim([
@@ -142,36 +140,40 @@ class rajaOngkirController extends Controller
                 'weight'        => $request->input('weight'),            // berat barang dalam gram
                 'courier'       => $cr                                   // kode kurir pengiriman: ['jne', 'tiki', 'pos'] untuk starter
             ])->get();
-           //  array_push($cost, $daftarProvinsi);
-           if(!empty($daftarProvinsi)) {
-                foreach($daftarProvinsi['rajaongkir']['results'] as $cost) {
-                        if(!empty($cost['costs'])) {
-                                foreach($cost['costs'] as $costDetail) {
-                                        $serviceName = strtoupper($cost['code'] .'-'. $costDetail['service']);
-                                        $costAmount = $costDetail['cost'][0]['value'];
-                                        $etd = $costDetail['cost'][0]['etd'];
-                                        
+
+                if(!empty($daftarProvinsi)) {
+                        foreach($daftarProvinsi as $dp) {
+                                if(!empty($dp['costs'])) {
+                                        foreach($dp['costs'] as $costDetail) {
+                                                $code = $dp['code'];
+                                                $name = $dp['name'];
+                                                $service = $costDetail['service'];
+                                                $description = $costDetail['description'];
+                                                $costAmount = $costDetail['cost'][0]['value'];
+                                                $etd = $costDetail['cost'][0]['etd'];
+                                                $note = $costDetail['cost'][0]['note'];
+
                                         $results = [
-                                                'service' => $serviceName,
-                                                'cost' => $costAmount,
+                                                'code' => $code,
+                                                'name' => $name,
+                                                'service' => $service,
+                                                'description' => $description,
+                                                'costAmount' => $costAmount,
                                                 'etd' => $etd,
-                                                'courier' => $cr,
+                                                'note' => $note,
                                         ];
 
-                                        $cost[] = $results;
+                                        array_push($cost, $results);
+                                        // $cost[] = $results;
+                                        }
                                 }
                         }
                 }
 
-                $origin_details = $daftarProvinsi['rajaongkir']['origin_details']['city_name'];
-                $destination_details = $daftarProvinsi['rajaongkir']['destination_details']['city_name'];
-           }
         }
         $response = [
                 'origin' => $request->input('origin'),
-                'origin_details' => $origin_details,
                 'destination' => $request->input('destination'),
-                'destination_details' => $destination_details,
                 'weight' => $request->input('weight'),
                 'results' => $cost,
         ];
