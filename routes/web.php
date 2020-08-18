@@ -13,8 +13,13 @@
 |
 */
 
+// $router->get('/', function () use ($router) {
+//     return $router->app->version();
+// });
 $router->get('/', function () use ($router) {
-    return $router->app->version();
+    $response = '<h1 style="color:#234e52; text-align: center;padding: 20% 0;">Api Raja Ongkir Lumen (7.2.1) 
+    <br/> <span>By Satrio Yudho</span></h1>';
+    return $response;
 });
 
 Route::get('city', 'rajaongkirController@getCity');

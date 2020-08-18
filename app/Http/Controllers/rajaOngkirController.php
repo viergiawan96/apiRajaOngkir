@@ -89,18 +89,18 @@ class rajaOngkirController extends Controller
                 if($province)
                 return ResponnseFormatter::success($province,"Data Kota Berdasarkan ID Berhasil Diambil");
                 else
-                return ResponseFormatter::error(null, 'Data Gagal Di ambil Cek Kambali ID');
+                return ResponseFormatter::error(null, 'Data Gagal Di ambil Cek Kembali ID', 404);
         }elseif($name) {
                 $province = province::where('province_name', $id)->get();
                 
                 if($province)
                 return ResponnseFormatter::success($province,"Data Kota Berdasarkan ID Berhasil Diambil");
                 else
-                return ResponseFormatter::error(null, 'Data Gagal Di ambil Cek Kambali ID');
+                return ResponseFormatter::error(null, 'Data Gagal Di ambil Cek Kembali ID', 404);
         }else{
                 $province = province::all();
 
-                return ResponnseFormatter::success($province,"Data Kota Berdasarkan ID Berhasil Diambil");
+                return ResponnseFormatter::success($province,"Data Kota Berdasarkan ID Berhasil Diambil", 404);
 
         }
     }
@@ -112,7 +112,7 @@ class rajaOngkirController extends Controller
 
     }
 
-    public function getCost(Request $request) {
+    private function getCost(Request $request) {
 
         $this->validate($request, [
             'origin' => 'required|integer',
@@ -120,9 +120,20 @@ class rajaOngkirController extends Controller
             'weight' => 'required|integer',
             'courier' => 'required|array'
         ]);
+        
+        $cityOrigin = city::where('city_id', $request->input('origin'))->get();
+        $cityDestination = city::where('city_id', $request->input('destination'))->get();
+
+        if(!$cityOrigin)
+                return ResponseFormatter::error(null, 'ID Kota Asal Salah', 404);
+        if(!$cityDestination)
+                return ResponseFormatter::error(null, 'ID Kota Asal Tujuan', 404);
+
 
         $courier = $request->input('courier');
         $cost = [];
+        $origin_details= '';
+        $destination_details= '';
 
         foreach($courier as $cr){
             $daftarProvinsi = RajaOngkir::ongkosKirim([
@@ -131,12 +142,44 @@ class rajaOngkirController extends Controller
                 'weight'        => $request->input('weight'),            // berat barang dalam gram
                 'courier'       => $cr                                   // kode kurir pengiriman: ['jne', 'tiki', 'pos'] untuk starter
             ])->get();
+           //  array_push($cost, $daftarProvinsi);
+           if(!empty($daftarProvinsi)) {
+                foreach($daftarProvinsi['rajaongkir']['results'] as $cost) {
+                        if(!empty($cost['costs'])) {
+                                foreach($cost['costs'] as $costDetail) {
+                                        $serviceName = strtoupper($cost['code'] .'-'. $costDetail['service']);
+                                        $costAmount = $costDetail['cost'][0]['value'];
+                                        $etd = $costDetail['cost'][0]['etd'];
+                                        
+                                        $results = [
+                                                'service' => $serviceName,
+                                                'cost' => $costAmount,
+                                                'etd' => $etd,
+                                                'courier' => $cr,
+                                        ];
 
-            // $cost = $daftarProvinsi;
-            array_push($cost, $daftarProvinsi);
+                                        $cost[] = $results;
+                                }
+                        }
+                }
+
+                $origin_details = $daftarProvinsi['rajaongkir']['origin_details']['city_name'];
+                $destination_details = $daftarProvinsi['rajaongkir']['destination_details']['city_name'];
+           }
         }
+        $response = [
+                'origin' => $request->input('origin'),
+                'origin_details' => $origin_details,
+                'destination' => $request->input('destination'),
+                'destination_details' => $destination_details,
+                'weight' => $request->input('weight'),
+                'results' => $cost,
+        ];
 
-        return ResponseFormatter::success($cost,"Data Berhasil Diambil");
+        if(!empty($cost))
+            return ResponseFormatter::success($response,"Data Berhasil Diambil");
+        else
+            return ResponseFormatter::error(null, 'Koneksi Bermasalah Silahkan Di Coba Kembali');
 
     }
 }
