@@ -3,7 +3,7 @@ if ( ! function_exists('config_path'))
 {
     /**
      * Get the configuration path.
-     *
+     * composer dump-autoload
      * @param  string $path
      * @return string
      */
