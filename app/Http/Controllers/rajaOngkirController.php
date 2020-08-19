@@ -87,29 +87,37 @@ class rajaOngkirController extends Controller
                 $province = province::where('province_id', $id)->get();
 
                 if($province)
-                return ResponnseFormatter::success($province,"Data Kota Berdasarkan ID Berhasil Diambil");
+                return ResponseFormatter::success($province,"Data Kota Berdasarkan ID Berhasil Diambil");
                 else
                 return ResponseFormatter::error(null, 'Data Gagal Di ambil Cek Kembali ID', 404);
         }elseif($name) {
                 $province = province::where('province_name', $id)->get();
                 
                 if($province)
-                return ResponnseFormatter::success($province,"Data Kota Berdasarkan ID Berhasil Diambil");
+                return ResponseFormatter::success($province,"Data Kota Berdasarkan ID Berhasil Diambil");
                 else
                 return ResponseFormatter::error(null, 'Data Gagal Di ambil Cek Kembali ID', 404);
         }else{
                 $province = province::all();
 
-                return ResponnseFormatter::success($province,"Data Kota Berdasarkan ID Berhasil Diambil", 404);
-
+                return ResponseFormatter::success($province,"Data Kota Berdasarkan ID Berhasil Diambil");
         }
+    }
+
+    public function getLocations() {
+        $getCity = province::with('city')->get();
+
+        if(sizeof($getCity) > 0)
+            return ResponseFormatter::success($getCity,"Data Berhasil Diambil");
+        else
+            return ResponseFormatter::error(null, 'Koneksi Bermasalah Silahkan Di Coba Kembali', 404);
+
     }
 
     public function getCourier() {
             $courier = courier::all();
 
-            return ResponnseFormatter::success($courier,"Data Kurir Berhasil Di Ambil");
-
+            return ResponseFormatter::success($courier,"Data Kurir Berhasil Di Ambil");
     }
 
     public function getCost(Request $request) {
