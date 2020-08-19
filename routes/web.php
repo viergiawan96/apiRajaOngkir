@@ -24,4 +24,5 @@ $router->get('/', function () use ($router) {
 
 Route::get('city', 'rajaongkirController@getCity');
 Route::get('province', 'rajaongkirController@getProvince');
+Route::get('getLocations', 'rajaongkirController@getLocations');
 Route::post('getCost', 'rajaongkirController@getCost');
