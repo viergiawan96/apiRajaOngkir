@@ -22,7 +22,16 @@ $router->get('/', function () use ($router) {
     return $response;
 });
 
-Route::get('city', 'rajaongkirController@getCity');
-Route::get('province', 'rajaongkirController@getProvince');
-Route::get('getLocations', 'rajaongkirController@getLocations');
-Route::post('getCost', 'rajaongkirController@getCost');
+// API route group
+$router->group(['prefix' => 'api'], function () use ($router) {
+    // Matches "/api/register
+    $router->post('register', 'AuthController@register');
+    $router->post('login', 'AuthController@login');
+    $router->get('users', 'UserController@profile');
+
+    $router->get('city', 'rajaongkirController@getCity');
+    $router->get('province', 'rajaongkirController@getProvince');
+    $router->get('getLocations', 'rajaongkirController@getLocations');
+    $router->post('getCost', 'rajaongkirController@getCost');
+});
+

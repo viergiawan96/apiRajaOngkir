@@ -10,6 +10,14 @@ use App\rajaongkir\province;
 
 class rajaOngkirController extends Controller
 {
+
+    public function __construct() {
+        
+        $this->middleware('auth');
+        
+    }    
+
+
     public function getCity(Request $request){
 
         $this->validate($request,[
