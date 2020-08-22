@@ -22,16 +22,12 @@ $router->get('/', function () use ($router) {
     return $response;
 });
 
-// API route group
-$router->group(['prefix' => 'api'], function () use ($router) {
-    // Matches "/api/register
-    $router->post('register', 'AuthController@register');
-    $router->post('login', 'AuthController@login');
-    $router->get('users', 'UserController@profile');
 
-    $router->get('city', 'rajaongkirController@getCity');
-    $router->get('province', 'rajaongkirController@getProvince');
-    $router->get('getLocations', 'rajaongkirController@getLocations');
-    $router->post('getCost', 'rajaongkirController@getCost');
-});
+    Route::post('register', 'AuthController@register');
+    Route::post('login', 'AuthController@login');
+    Route::get('users', 'UserController@profile');
 
+    Route::get('city', 'rajaOngkirController@getCity');
+    Route::get('province', 'rajaOngkirController@getProvince');
+    Route::get('getLocations', 'rajaOngkirController@getLocations');
+    Route::post('getCost', 'rajaOngkirController@getCost');

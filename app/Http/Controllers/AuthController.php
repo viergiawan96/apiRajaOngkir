@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use  App\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -16,55 +17,111 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        //validate incoming request 
         $this->validate($request, [
             'name' => 'required|string',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|confirmed',
+            'email' => 'required|unique:users|max:255',
+            'password' => 'required|min:6'
         ]);
-
-        try {
-
-            $user = new User;
-            $user->name = $request->input('name');
-            $user->email = $request->input('email');
-            $plainPassword = $request->input('password');
-            $user->password = app('hash')->make($plainPassword);
-            $user->save();
-            
-            $token = auth()->login($user);
-
-            //return successful response
-            return $this->respondWithToken($token);
-
-        } catch (\Exception $e) {
-            //return error message
-            return response()->json(['message' => 'User Registration Failed!'], 409);
+ 
+        $name = $request->input("name");
+        $email = $request->input("email");
+        $password = $request->input("password");
+ 
+        $hashPwd = Hash::make($password);
+ 
+        $data = [
+            "name" => $name,
+            "email" => $email,
+            "password" => $hashPwd
+        ];
+ 
+ 
+ 
+        if (User::create($data)) {
+            $results = [
+                'meta' => [
+                    "code"   => 201,
+                    "message" => "register_success",
+                ]
+            ];
+        } else {
+            $results = [
+                'meta' => [
+                    "code"   => 404,
+                    "message" => "vailed_register",
+                ]
+            ];
         }
+ 
+        return response()->json($results, $results['meta']['code']);
 
     }
-    /**
-     * Get a JWT via given credentials.
-     *
-     * @param  Request  $request
-     * @return Response
-     */
+
+    
     public function login(Request $request)
     {
-          //validate incoming request 
+
         $this->validate($request, [
             'email' => 'required|string',
             'password' => 'required|string',
         ]);
 
-        $credentials = $request->only(['email', 'password']);
+        $email = $request->input("email");
+        $password = $request->input("password");
 
-        if (! $token = Auth::attempt($credentials)) {
-            return response()->json(['message' => 'Unauthorized'], 401);
-        }
+       $user = user::where('email', $email)->first();
+    
+       if(!$user) {
+           $out = [
+               'message' => 'login_vailed',
+               'code' => 401,
+               'results' => [
+                   'token' => null
+               ]
+               ];
+               return response()->json($out,$out['code']);
+       }
 
-        return $this->respondWithToken($token);
+       if(Hash::check($password, $user->password)) {
+            $newtoken  = $this->generateRandomString();
+
+           $user->update([
+               'api_key' => $newtoken
+           ]);
+           
+            $results = [
+                'meta' => [
+                    "message" => "login_success",
+                    "code"    => 200,
+                    "result"  => [
+                    "token" => $newtoken,
+                     ]
+                ]
+            ];
+       } else {
+            $results = [
+                'meta' => [
+                    "message" => "login_vailed",
+                    "code"    => 401,
+                    "result"  => [
+                        "token" => null,
+                    ]
+                ]
+            ];
+       }
+
+       return response()->json($results, $results['meta']['code']);
+
     }
 
-
+    function generateRandomString($length = 80)
+    {
+        $karakkter = '012345678dssd9abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $panjang_karakter = strlen($karakkter);
+        $str = '';
+        for ($i = 0; $i < $length; $i++) {
+            $str .= $karakkter[rand(0, $panjang_karakter - 1)];
+        }
+        return $str;
+    }
 }
